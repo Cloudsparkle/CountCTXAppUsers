@@ -22,12 +22,12 @@
 #Try loading Citrix Powershell modules, exit when failed
 If ((Get-PSSnapin "Citrix*" -EA silentlycontinue) -eq $null)
   {
-	try {Add-PSSnapin Citrix* -ErrorAction Stop }
-	catch {Write-error "Error loading XenApp Powershell snapin"; Return }
+    try {Add-PSSnapin Citrix* -ErrorAction Stop }
+    catch {Write-error "Error loading XenApp Powershell snapin"; Return }
   }
 
 #Variables to be customized
-$CTXDDC = "nitcitddc1vp" #Choose any Zone Data Collector
+$CTXDDC = "" #Choose any Delivery Controller
 $CSVFile = "c:\temp\CTXAppInventory.csv"
 
 #Initializing Script Variables
@@ -61,7 +61,7 @@ Foreach ($CTXApp in $CTXApplications)
 
       #AD User or Group?
       try {$AppGroup = Get-ADGroup $ADName }
-	    catch { $IsADUser = $true }
+      catch { $IsADUser = $true }
 
       if ($IsADUser -eq $false)
       {
@@ -85,20 +85,20 @@ Foreach ($CTXApp in $CTXApplications)
           $totalcount = $totalcount + 1
         }
       }
-     }
+    }
 
-     #When running interactive, get some running output
-     #write-host $CTXAPP.ApplicationName, $output, $totalcount
+    #When running interactive, get some running output
+    #write-host $CTXAPP.ApplicationName, $output, $totalcount
 
-     #Get the CSV data ready
-	   $row = New-Object System.Object # Create an object to append to the array
-	   $row | Add-Member -MemberType NoteProperty -Name "Application" -Value $CTXApp.Displayname
-	   $row | Add-Member -MemberType NoteProperty -Name "Accounts" -Value $output
-	   $row | Add-Member -MemberType NoteProperty -Name "Count" -Value $totalcount
+    #Get the CSV data ready
+    $row = New-Object System.Object # Create an object to append to the array
+    $row | Add-Member -MemberType NoteProperty -Name "Application" -Value $CTXApp.Displayname
+    $row | Add-Member -MemberType NoteProperty -Name "Accounts" -Value $output
+    $row | Add-Member -MemberType NoteProperty -Name "Count" -Value $totalcount
 
-	   $csvContents += $row # append the new data to the array#
-   }
- }
+    $csvContents += $row # append the new data to the array#
+  }
+}
 
 #Write the CSV output
 $csvContents | Export-CSV -path $CSVFile -NoTypeInformation

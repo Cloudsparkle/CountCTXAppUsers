@@ -27,7 +27,7 @@ if ((Get-PSSnapin "Citrix.XenApp.Commands" -EA silentlycontinue) -eq $null)
   }
 
 #Variables to be customized
-$XenAppZDC = "NESRVCTX100" #Choose any Zone Data Collector
+$XenAppZDC = "" #Choose any Zone Data Collector
 $CSVFile = "c:\temp\CTXAppInventory.csv"
 
 #Initializing Script Variables
