@@ -49,10 +49,10 @@ Foreach ($CTXApp in $CTXApplications)
 
     #Get AD Users and groups of the published resource
     $Appaccounts = Get-XAApplicationReport -Browsername $CTXApp.Browsername | select Accounts
-	  $Accountlist = $Appaccounts.accounts
+    $Accountlist = $Appaccounts.accounts
 
-	  foreach ($account in $accountlist)
-	  {
+    foreach ($account in $accountlist)
+    {
       $output = $output + ";" + $account
 
       #If an AD Group is used, count all enabled AD user accounts
@@ -85,13 +85,12 @@ Foreach ($CTXApp in $CTXApplications)
     #write-host $CTXApp.Browsername, $accountlist, $totalcount
 
     #Get the CSV data ready
-	  $row = New-Object System.Object # Create an object to append to the array
-	  $row | Add-Member -MemberType NoteProperty -Name "Application" -Value $CTXApp.Displayname
-	  $row | Add-Member -MemberType NoteProperty -Name "Accounts" -Value $output
-	  $row | Add-Member -MemberType NoteProperty -Name "Count" -Value $totalcount
+    $row = New-Object System.Object # Create an object to append to the array
+    $row | Add-Member -MemberType NoteProperty -Name "Application" -Value $CTXApp.Displayname
+    $row | Add-Member -MemberType NoteProperty -Name "Accounts" -Value $output
+    $row | Add-Member -MemberType NoteProperty -Name "Count" -Value $totalcount
 
-	  $csvContents += $row # append the new data to the array#
-
+    $csvContents += $row # append the new data to the array#
   }
 }
 
