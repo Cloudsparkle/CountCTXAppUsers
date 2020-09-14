@@ -5,7 +5,7 @@
 .DESCRIPTION
   This script generates a CSV file with an inventory of published resources on Citrix CVAD, retrieves AD users and groups per application and counts the number of (enabled) AD accounts per application
 .PARAMETER <Parameter_Name>
-    None
+  None
 .INPUTS
   None
 .OUTPUTS
@@ -19,14 +19,15 @@
   None
 #>
 
-if ((Get-PSSnapin "Citrix*" -EA silentlycontinue) -eq $null) 
-    {
-	try { Add-PSSnapin Citrix* -ErrorAction Stop }
-	catch { write-error "Error loading XenApp Powershell snapin"; Return }
-    }
+#Try loading Citrix Powershell modules, exit when failed
+If ((Get-PSSnapin "Citrix*" -EA silentlycontinue) -eq $null)
+  {
+	try {Add-PSSnapin Citrix* -ErrorAction Stop }
+	catch {Write-error "Error loading XenApp Powershell snapin"; Return }
+  }
 
 #Variables to be customized
-$CTXDDC = "nitcitddc1vp"
+$CTXDDC = "nitcitddc1vp" #Choose any Zone Data Collector
 $CSVFile = "c:\temp\CTXAppInventory.csv"
 
 #Initializing Script Variables
@@ -35,72 +36,69 @@ $csvContents = @() # Create the empty array that will eventually be the CSV file
 #Get all Published Resources
 $CTXApplications = Get-BrokerApplication -AdminAddress $CTXDDC
 
-foreach ($CTXApp in $CTXApplications)
+Foreach ($CTXApp in $CTXApplications)
 {
-If ($CTXApp.Enabled -eq $True)
-	{
-	#Initializing
+  If ($CTXApp.Enabled -eq $True)
+  {
+    #Initializing
     $output=""
     $totalcount = 0
 
     #Get AD Users and groups of the published resource
     $accountlist = $CTXApp.AssociatedUserNames
-    
-	
-    
-	foreach ($account in $accountlist)
-	    {
-        $AppGroup = $null
-        $IsADUser = $false
 
-        $input = $account
-        $domain,$ADName = $input.split('\')
-        
-        $output += ($ADName + ";")
-                
-        #Check if and AD Group or AD User has been used
-        try {$AppGroup = Get-ADGroup $ADName }
+    Foreach ($account in $accountlist)
+    {
+      #Initialize loop variables
+      $AppGroup = $null
+      $IsADUser = $false
+
+      #Split the account into DOMAIN and USER
+      $input = $account
+      $domain,$ADName = $input.split('\')
+
+      $output += ($ADName + ";")
+
+      #AD User or Group?
+      try {$AppGroup = Get-ADGroup $ADName }
 	    catch { $IsADUser = $true }
 
-        #$AppGroup = Get-ADGroup $ADName
-        
-        if ($IsADUser -eq $false)
-            {
-            #Initialize Counter
-            $counter1 = 0
+      if ($IsADUser -eq $false)
+      {
+        #Initialize Counter
+        $counter1 = 0
 
-            $counter1 = (Get-ADGroupMember -Recursive -Identity $ADName |get-aduser|Where{$_.Enabled -eq $true}).count
-         
-            #Check if something was returned
-            if ($counter1 -ne $null)
-                {
-                $totalcount += $counter1
-                }
-            }
-        Else    
-            {
-            $AppUser = Get-ADUser $ADName
-            write-host $AppUser
-            if ($AppUSer.Enabled -eq $True)
-                {
-                $totalcount = $totalcount + 1
-                }
-            } 
- 
+        $counter1 = (Get-ADGroupMember -Recursive -Identity $ADName |get-aduser|Where{$_.Enabled -eq $true}).count
+
+        #Check if something was returned
+        if ($counter1 -ne $null)
+        {
+          $totalcount += $counter1
         }
+      }
+      Else
+      {
+        $AppUser = Get-ADUser $ADName
 
-    #When running interactive, get some running output
-    write-host $CTXAPP.ApplicationName, $output, $totalcount
+        if ($AppUSer.Enabled -eq $True)
+        {
+          $totalcount = $totalcount + 1
+        }
+      }
+     }
 
-    #Get the CSV data ready
-	$row = New-Object System.Object # Create an object to append to the array
-	$row | Add-Member -MemberType NoteProperty -Name "Application" -Value $CTXApp.Displayname
-	$row | Add-Member -MemberType NoteProperty -Name "Accounts" -Value $output
-	$row | Add-Member -MemberType NoteProperty -Name "Count" -Value $totalcount
-	
-	$csvContents += $row # append the new data to the array#
-	}
-}
+     #When running interactive, get some running output
+     #write-host $CTXAPP.ApplicationName, $output, $totalcount
+
+     #Get the CSV data ready
+	   $row = New-Object System.Object # Create an object to append to the array
+	   $row | Add-Member -MemberType NoteProperty -Name "Application" -Value $CTXApp.Displayname
+	   $row | Add-Member -MemberType NoteProperty -Name "Accounts" -Value $output
+	   $row | Add-Member -MemberType NoteProperty -Name "Count" -Value $totalcount
+
+	   $csvContents += $row # append the new data to the array#
+   }
+ }
 
 #Write the CSV output
 $csvContents | Export-CSV -path $CSVFile -NoTypeInformation
