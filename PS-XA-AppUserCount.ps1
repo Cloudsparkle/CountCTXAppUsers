@@ -57,17 +57,17 @@ Foreach ($CTXApp in $CTXApplications)
 
       #If an AD Group is used, count all enabled AD user accounts
       #If an AD User is used, check if enabled, and count if so
+      
       if ($account.AccountType -eq "Group")
       {
-        #Initialize Counter
-        $counter1 = 0
-
-        $counter1 = (Get-ADGroupMember -Recursive -Identity $account.AccountName |get-aduser|Where{$_.Enabled -eq $true}).count
-
-        #Check if something was returned
-        if ($counter1 -ne $null)
+        $groupmembers = (Get-ADGroupMember -Recursive -Identity $account.AccountName)
+        Foreach ($groupmember in $groupmembers)
         {
-          $totalcount += $counter1
+          $groupuser = get-aduser -Identity $groupmember.SamAccountName
+          if ($groupuser.enabled -eq $true)
+          {
+            $totalcount = $totalcount + 1
+          }
         }
       }
       Else

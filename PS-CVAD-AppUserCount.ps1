@@ -65,15 +65,14 @@ Foreach ($CTXApp in $CTXApplications)
 
       if ($IsADUser -eq $false)
       {
-        #Initialize Counter
-        $counter1 = 0
-
-        $counter1 = (Get-ADGroupMember -Recursive -Identity $ADName |get-aduser|Where{$_.Enabled -eq $true}).count
-
-        #Check if something was returned
-        if ($counter1 -ne $null)
+        $groupmembers = (Get-ADGroupMember -Recursive -Identity $account.AccountName)
+        Foreach ($groupmember in $groupmembers)
         {
-          $totalcount += $counter1
+          $groupuser = get-aduser -Identity $groupmember.SamAccountName
+          if ($groupuser.enabled -eq $true)
+          {
+            $totalcount = $totalcount + 1
+          }
         }
       }
       Else
