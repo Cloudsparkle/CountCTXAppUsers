@@ -23,7 +23,7 @@
 If ((Get-PSSnapin "Citrix*" -EA silentlycontinue) -eq $null)
   {
     try {Add-PSSnapin Citrix* -ErrorAction Stop }
-    catch {Write-error "Error loading XenApp Powershell snapin"; Return }
+    catch {Write-error "Error loading Citrix Powershell snapins"; Return }
   }
 
 #Variables to be customized
